@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<p>Don't have an account? <a href='/register'>Register here</a></p>
+<form method='POST'>
+  <table>
+      <thead><h1>Log in to Get it Done!</h1>
+      </thead>
+      <tbody>
+          <tr>
+            <td>
+                <label for="email">Email (optional)</label> 
+              </td>
+              <td> 
+                <input name="email" type="text" value="{{email}}" /> 
+                <span class="error">{{email_error}}</span>
+             </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="pw">Password</label>
+            </td>
+            <td>  
+              <input name="pw" type="password" /> 
+              <span class="error">{{password_error}}</span>
+            </td>
+           
+        </tr>
+        <tr>
+            <td>
+              <input name="submit" type="submit" value="Submit" />
+            </td>
+
+        </tr>         
+    </tbody>
+    
+  
+</table>
+</form>
+
+{% endblock %}
