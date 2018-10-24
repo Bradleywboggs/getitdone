@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 import re
 
@@ -6,7 +6,9 @@ app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://getitdone:getitdone@localhost:8889/getitdone'
 app.config['SQLALCHEMY_ECHO'] = True
+app.secret_key = 'F(*3FbNjen^3hfsmck{|f'
 db = SQLAlchemy(app)
+
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -26,6 +28,11 @@ class User(db.Model):
         self.email = email
         self.password = password
 
+@app.before_request
+def require_login():
+    allowed_routes = ['get_login', 'post_login', 'get_register', 'post_register']
+    if request.endpoint not in allowed_routes and 'email' not in session:
+        return redirect('/login')
 
 @app.route('/login')
 def get_login():
@@ -36,9 +43,8 @@ def post_login():
     email = request.form.get('email')
     password = request.form.get('pw')
     user = User.query.filter_by(email=email).first()
-
     if user and user.password == password:
-        #TODO: SESSION: 'remember' user is logged in
+        session['email'] = email
         return redirect('/')
     else:
         return redirect('/login')
@@ -101,6 +107,7 @@ def post_register():
         new_user = User(email, password)
         db.session.add(new_user)
         db.session.commit()
+        session['email'] = email
         return redirect('/')
     else:
         return render_template('register.html', 
@@ -109,7 +116,8 @@ def post_register():
 
 @app.route('/logout')
 def log_out():
-    return redirect('/login') # TODO: SESSION 'forget' user has logged in
+    del session['email']
+    return redirect('/login')
 
 @app.route('/', methods = ['POST', 'GET'])
 def index():
