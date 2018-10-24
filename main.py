@@ -62,7 +62,6 @@ def post_register():
     verifypw = request.form['verifypw']
     existing_user = User.query.filter_by(email=email).first()
 
-    # TODO: FLASH: Change errors to flashed messages. FIGURE OUT BEST WAY TO GIVE DETAILED ERROR MESSAGING
     email_error = ''
     password_error = ''
     verifypw_error = ''
