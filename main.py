@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template, session
+from flask import Flask, request, redirect, render_template, session, flash
 from flask_sqlalchemy import SQLAlchemy
 import re
 
@@ -45,10 +45,11 @@ def post_login():
     user = User.query.filter_by(email=email).first()
     if user and user.password == password:
         session['email'] = email
+        flash('Login Successful!', category='success')
         return redirect('/')
     else:
+        flash('Incorrect username or password.', category='error')
         return redirect('/login')
-        #TODO: FLASH: error message
 
 @app.route('/register')
 def get_register():
@@ -61,7 +62,7 @@ def post_register():
     verifypw = request.form['verifypw']
     existing_user = User.query.filter_by(email=email).first()
 
-    # FLASH: Change errors to flashed messages
+    # TODO: FLASH: Change errors to flashed messages. FIGURE OUT BEST WAY TO GIVE DETAILED ERROR MESSAGING
     email_error = ''
     password_error = ''
     verifypw_error = ''
@@ -76,39 +77,44 @@ def post_register():
     
     #verify email
     if not email_matched:
-        email_error = 'Email not valid'
-        email = ''
+        email_error =  'error'
+        flash('This email is not valid', 'error')
     else:
-        email_error = ''
         email = email
-    
+        if existing_user:
+            duplicate_user_error = 'error'
+            flash('User already exists.', 'error')
+        else:
+
     # validate password
-    if password == '':
-        password_error = 'This field is required.'
-        password = ''
-        verifypw = ''      
-    elif not pw_matched:
-        password_error = 'This password is not valid'
-        password = ''
-        verifypw = ''    
-# verify both passwords match
-    elif password != verifypw:
-        verifypw_error = 'Passwords do not match.'
-        password = ''
-        verifypw = ''
-    else:
-        password = password
-        verifypw = verifypw   
-    
-    if existing_user:
-        duplicate_user_error = 'User already exists.'
+            if password == '':
+                password_error = 'error'
+                flash('Please enter a password', 'error')
+                password = ''
+                verifypw = ''      
+            elif not pw_matched:
+                password_error = 'error'
+                flash('This password is not valid', 'error')
+                password = ''
+                verifypw = ''    
+        # verify both passwords match
+            elif password != verifypw:
+                verifypw_error = 'error'
+                flash('Passwords do not match.', 'error')
+                password = ''
+                verifypw = ''
+            else:
+                password = password
+                verifypw = verifypw   
 
     if not email_error and not password_error and not verifypw_error and not duplicate_user_error:
         new_user = User(email, password)
         db.session.add(new_user)
         db.session.commit()
         session['email'] = email
+        flash('Registration successful!', category='success')
         return redirect('/')
+    #TODO: Determine if re-rendering template is needed. 
     else:
         return render_template('register.html', 
         password_error=password_error, email_error=email_error, verifypw_error=verifypw_error,duplicate_user_error=duplicate_user_error,
